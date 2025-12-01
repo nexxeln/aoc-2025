@@ -1,7 +1,0 @@
-*.cmi
-*.cmo
-*.cmx
-*.o
-*.out
-.direnv/
-result
