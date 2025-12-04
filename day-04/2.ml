@@ -48,18 +48,34 @@ let remove_positions grid positions =
         if PosSet.mem (row, col) position_set then '.'
         else c) line)
 
-let rec remove_until_done grid total_removed =
-  let accessible = find_all_accessible grid in
+let get_neighbors grid positions =
+  positions
+  |> List.map (fun (row, col) ->
+      [(-1,-1); (-1,0); (-1,1); (0,-1); (0,1); (1,-1); (1,0); (1,1)]
+      |> List.filter_map (fun (dr, dc) ->
+          let nr, nc = row + dr, col + dc in
+          match get_char grid nr nc with
+          | Some '@' -> Some (nr, nc)
+          | _ -> None))
+  |> List.flatten
+  |> List.sort_uniq compare
+
+let rec remove_with_candidates grid candidates total_removed =
+  let accessible =
+    candidates
+    |> List.filter (fun (r, c) -> is_accessible grid r c)
+  in
   match accessible with
   | [] -> total_removed
   | _ ->
       let new_grid = remove_positions grid accessible in
-      remove_until_done new_grid (total_removed + List.length accessible)
+      let new_candidates = get_neighbors new_grid accessible in
+      remove_with_candidates new_grid new_candidates (total_removed + List.length accessible)
 
 let solve filename =
-  read_input filename
-  |> parse_grid
-  |> fun grid -> remove_until_done grid 0
+  let grid = read_input filename |> parse_grid in
+  let initial_candidates = find_all_accessible grid in
+  remove_with_candidates grid initial_candidates 0
 
 let () =
   let test_result = solve "test.txt" in
