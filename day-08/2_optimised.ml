@@ -23,14 +23,19 @@ let prim points =
       ) IntMap.empty
   in
 
-  let rec loop dists last_edge =
-    if IntMap.is_empty dists then last_edge
+  let rec loop dists max_edge =
+    if IntMap.is_empty dists then max_edge
     else
-      let (u, (_, from)) =
+      let (u, (d, from)) =
         IntMap.fold (fun node (d, from) (best_node, (best_d, best_from)) ->
           if d < best_d then (node, (d, from))
           else (best_node, (best_d, best_from))
         ) dists (-1, (max_int, -1))
+      in
+
+      let max_edge' =
+        if d > fst max_edge then (d, (from, u))
+        else max_edge
       in
 
       let dists' =
@@ -41,10 +46,10 @@ let prim points =
             else (old_d, old_from))
       in
 
-      loop dists' (from, u)
+      loop dists' max_edge'
   in
 
-  loop init_dists (0, 0)
+  snd (loop init_dists (0, (0, 0)))
 
 let solve filename =
   let lines = read_input filename in
